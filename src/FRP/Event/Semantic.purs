@@ -114,9 +114,8 @@ import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Data.Traversable (mapAccumL, traverse)
 import Data.Tuple (Tuple(..), fst, snd)
-import FRP.Behavior (ABehavior, sample)
 import FRP.Event (class IsEvent)
-import Partial.Unsafe (unsafeCrashWith, unsafePartial)
+import Partial.Unsafe (unsafeCrashWith)
 
 -- | The semantic domain for events
 newtype Semantic time a = Semantic (List.List (Tuple time a))
@@ -144,14 +143,6 @@ latestAt
   -> List.List (Tuple time a)
   -> Maybe (Tuple time a)
 latestAt t xs = List.last (List.takeWhile ((_ <= t) <<< fst) xs)
-
-meaning :: forall time a. Bounded time => ABehavior (Semantic time) a -> time -> a
-meaning b t = unsafePartial valueOf (sample b (once t identity)) where
-  valueOf :: Partial => Semantic time a -> a
-  valueOf (Semantic (Tuple _ a : Nil)) = a
-
-  once :: forall b. time -> b -> Semantic time b
-  once t1 a = Semantic (Tuple t1 a : Nil)
 
 instance applySemantic :: Ord time => Apply (Semantic time) where
   apply (Semantic xs) (Semantic ys) =
